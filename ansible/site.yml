@@ -1,0 +1,5 @@
+- hosts: homelab
+  become: true
+  roles:
+    - tailscale
+

@@ -1,0 +1,25 @@
+- name: Configure static IP with Netplan
+  copy:
+    dest: /etc/netplan/01-static.yaml
+    owner: root
+    group: root
+    mode: '0600'
+    content: |
+      network:
+        version: 2
+        renderer: networkd
+        ethernets:
+          enp4s0:
+            dhcp4: no
+            addresses:
+              - 192.168.0.50/24
+            routes:
+              - to: default
+                via: 192.168.0.1
+            nameservers:
+              addresses:
+                - 1.1.1.1
+                - 8.8.8.8
+
+- name: Apply netplan
+  command: netplan apply

@@ -1,0 +1,7 @@
+- hosts: homelab
+  become: true
+  roles:
+    - netplan
+    - tailscale
+    - cloudflared
+    - kubernetes

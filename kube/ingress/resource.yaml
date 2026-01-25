@@ -1,0 +1,51 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: global-ingress
+  namespace: ingress-nginx
+  annotations:
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: bidnow.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bidnow-frontend-external
+            port:
+              number: 3000
+  - host: bidnowback.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bidnow-backend-external
+            port:
+              number: 8081
+  - host: portfolio.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: portfolio-external
+            port:
+              number: 3000
+  - host: onabudget.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: onabudget-external
+            port:
+              number: 3000
+

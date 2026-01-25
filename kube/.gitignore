@@ -1,0 +1,6 @@
+# Ignore all secret files
+*-secrets.yaml
+*-secrets.yml
+
+# Ignore secret directories
+secrets/

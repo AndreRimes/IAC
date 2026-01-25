@@ -1,0 +1,49 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bidnow-namespace
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: bidnow-namespace
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:latest
+        ports:
+        - containerPort: 5432
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "0.5"
+          requests:
+            memory: "256Mi"
+            cpu: "0.25"
+        envFrom:
+        - secretRef:
+            name: postgres-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-service
+  namespace: bidnow-namespace
+spec:
+  type: ClusterIP
+  selector:
+    app: postgres
+  ports:
+  - protocol: TCP
+    port: 5432
+    targetPort: 5432

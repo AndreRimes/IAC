@@ -1,0 +1,97 @@
+- name: Download cloudflared binary
+  get_url:
+    url: https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
+    dest: /usr/local/bin/cloudflared
+    mode: '0755'
+  tags: cloudflared
+
+
+- name: Verify cloudflared installation
+  command: cloudflared --version
+  register: cloudflared_version
+  changed_when: false
+  tags: cloudflared
+
+- debug:
+    msg: "{{ cloudflared_version.stdout }}"
+  tags: cloudflared
+- name: Create cloudflared config dir
+  file:
+    path: /etc/cloudflared
+    state: directory
+    mode: '0755'
+  tags: cloudflared
+
+- name: Configure Cloudflare Tunnel
+  copy:
+    dest: /etc/cloudflared/config.yml
+    mode: '0600'
+    content: |
+      tunnel: homelab
+      credentials-file: /etc/cloudflared/credentials.json
+      origincert: /etc/cloudflared/cert.pem
+      
+      ingress:
+        - hostname: onabudget.andrerimes.com
+          service: http://192.168.0.50:30000
+        - hostname: portfolio.andrerimes.com
+          service: http://192.168.0.50:30001
+        - hostname: bidnow.andrerimes.com
+          service: http://192.168.0.50:30002
+        - hostname: bidnowback.andrerimes.com
+          service: http://192.168.0.50:30003
+          originRequest:
+            httpHostHeader: bidnowback.andrerimes.com
+            noTLSVerify: true
+            connectTimeout: 30s
+            http2Origin: false
+        - hostname: bidnowback-ws.andrerimes.com
+          service: http://192.168.0.50:30005
+          originRequest:
+            httpHostHeader: bidnowback-ws.andrerimes.com
+            noTLSVerify: true
+            connectTimeout: 90s
+            http2Origin: false
+            disableChunkedEncoding: true
+        - hostname: bidnow-recommendation.andrerimes.com
+          service: http://192.168.0.50:30006
+        - hostname: nextcloud.andrerimes.com
+          service: http://192.168.0.50:30007
+        - service: http_status:404
+        
+        
+        
+  notify: Restart cloudflared
+  tags: cloudflared
+
+- name: Create systemd service for cloudflared
+  copy:
+    dest: /etc/systemd/system/cloudflared.service
+    mode: '0644'
+    content: |
+      [Unit]
+      Description=Cloudflare Tunnel
+      After=network.target
+
+      [Service]
+      Type=simple
+      User=root
+      ExecStart=/usr/local/bin/cloudflared tunnel run
+      Restart=on-failure
+      RestartSec=5s
+
+      [Install]
+      WantedBy=multi-user.target
+  tags: cloudflared
+
+- name: Reload systemd daemon
+  systemd:
+    daemon_reload: yes
+  tags: cloudflared
+
+- name: Enable cloudflared service
+  systemd:
+    name: cloudflared
+    enabled: yes
+    state: started
+  tags: cloudflared

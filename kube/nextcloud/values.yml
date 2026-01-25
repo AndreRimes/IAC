@@ -1,0 +1,46 @@
+nextcloud:
+  host: nextcloud.andrerimes.com
+  username: admin
+  password: chupacabra2038*
+  configs:
+    custom.config.php: |-
+      <?php
+      $CONFIG = array (
+        'trusted_domains' => array (
+          0 => 'nextcloud.andrerimes.com',
+          1 => 'localhost',
+          2 => '127.0.0.1',
+          3 => '192.168.0.50:30007',
+        ),
+      );
+
+persistence:
+  enabled: true
+  size: 50Gi
+  accessMode: ReadWriteOnce
+
+postgresql:
+  enabled: true
+  auth:
+    username: nextcloud
+    password: nextcloudpass
+    database: nextcloud
+  primary:
+    persistence:
+      enabled: true
+      size: 10Gi
+
+redis:
+  enabled: true
+  architecture: standalone
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: "10g"
+  hosts:
+    - host: nextcloud.andrerimes.com
+      paths:
+        - path: /
+          pathType: Prefix
