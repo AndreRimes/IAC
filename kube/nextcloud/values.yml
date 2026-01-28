@@ -1,7 +1,5 @@
 nextcloud:
   host: nextcloud.andrerimes.com
-  username: admin
-  password: chupacabra2038*
   configs:
     custom.config.php: |-
       <?php
