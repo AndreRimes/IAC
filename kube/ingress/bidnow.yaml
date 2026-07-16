@@ -7,8 +7,24 @@ spec:
   type: ExternalName
   externalName: bidnow-backend-service.bidnow-namespace.svc.cluster.local
   ports:
-    - port: 8081
+    - name: http
+      port: 8081
       targetPort: 8081
+    - name: websocket
+      port: 3334
+      targetPort: 3334
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bidnow-recommendation-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: bidnow-recommendation-service.bidnow-namespace.svc.cluster.local
+  ports:
+    - port: 8000
+      targetPort: 8000
 ---
 apiVersion: v1
 kind: Service

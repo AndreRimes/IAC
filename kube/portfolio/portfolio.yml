@@ -37,11 +37,10 @@ metadata:
   name: portfolio-service
   namespace: portfolio-namespace
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: portfolio
   ports:
   - protocol: TCP
     port: 3000
     targetPort: 3000
-    nodePort: 30001

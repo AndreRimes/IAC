@@ -3,5 +3,6 @@
   roles:
     - netplan
     - tailscale
-    - cloudflared
     - kubernetes
+    - ingress-nginx
+    - cloudflared

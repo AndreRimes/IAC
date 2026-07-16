@@ -5,6 +5,8 @@ metadata:
   namespace: ingress-nginx
   annotations:
     nginx.ingress.kubernetes.io/service-upstream: "true"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
 spec:
   ingressClassName: nginx
   rules:
@@ -28,6 +30,26 @@ spec:
             name: bidnow-backend-external
             port:
               number: 8081
+  - host: bidnowback-ws.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bidnow-backend-external
+            port:
+              number: 3334
+  - host: bidnow-recommendation.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bidnow-recommendation-external
+            port:
+              number: 8000
   - host: portfolio.andrerimes.com
     http:
       paths:

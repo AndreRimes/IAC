@@ -48,13 +48,12 @@ metadata:
   name: onabudget-service
   namespace: onabudget-namespace
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: onabudget
   ports:
     - port: 3000
       targetPort: 3000
-      nodePort: 30000
 ---
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler

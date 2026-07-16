@@ -83,7 +83,7 @@ metadata:
   name: bidnow-backend-service
   namespace: bidnow-namespace
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: bidnow-backend
   ports:
@@ -91,9 +91,7 @@ spec:
     protocol: TCP
     port: 8081
     targetPort: 8081
-    nodePort: 30003
   - name: websocket
     protocol: TCP
     port: 3334
-    targetPort: 3334
-    nodePort: 30005 
+    targetPort: 3334 

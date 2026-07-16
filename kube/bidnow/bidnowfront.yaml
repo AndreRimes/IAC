@@ -38,11 +38,10 @@ metadata:
   name: bidnow-frontend-service
   namespace: bidnow-namespace
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: bidnow-frontend
   ports:
   - protocol: TCP
     port: 3000
     targetPort: 3000
-    nodePort: 30002

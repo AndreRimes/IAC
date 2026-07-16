@@ -33,30 +33,22 @@
       
       ingress:
         - hostname: onabudget.andrerimes.com
-          service: http://192.168.0.50:30000
+          service: http://localhost:80
         - hostname: portfolio.andrerimes.com
-          service: http://192.168.0.50:30001
+          service: http://localhost:80
         - hostname: bidnow.andrerimes.com
-          service: http://192.168.0.50:30002
+          service: http://localhost:80
         - hostname: bidnowback.andrerimes.com
-          service: http://192.168.0.50:30003
-          originRequest:
-            httpHostHeader: bidnowback.andrerimes.com
-            noTLSVerify: true
-            connectTimeout: 30s
-            http2Origin: false
+          service: http://localhost:80
         - hostname: bidnowback-ws.andrerimes.com
-          service: http://192.168.0.50:30005
+          service: http://localhost:80
           originRequest:
-            httpHostHeader: bidnowback-ws.andrerimes.com
-            noTLSVerify: true
             connectTimeout: 90s
-            http2Origin: false
             disableChunkedEncoding: true
         - hostname: bidnow-recommendation.andrerimes.com
-          service: http://192.168.0.50:30006
+          service: http://localhost:80
         - hostname: nextcloud.andrerimes.com
-          service: http://192.168.0.50:30007
+          service: http://localhost:80
         - service: http_status:404
         
         
