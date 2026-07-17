@@ -1,0 +1,12 @@
+argocd_chart_version: "10.1.4"
+argocd_image_updater_chart_version: "1.2.4"
+argocd_namespace: argocd
+
+argocd_repo_url: "https://github.com/AndreRimes/IAC.git"
+argocd_target_revision: main
+
+
+argocd_git_username: "AndreRimes"
+argocd_git_password: ""
+argocd_git_commit_user: "argocd-image-updater"
+argocd_git_commit_mail: "argocd-image-updater@andrerimes.com"

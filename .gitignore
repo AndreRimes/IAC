@@ -1,0 +1,4 @@
+# Sealed Secrets master key backup. Committing this would defeat the entire point
+# of sealing -- anyone with the repo could then decrypt every SealedSecret in it.
+sealed-secrets-master.key
+*.key

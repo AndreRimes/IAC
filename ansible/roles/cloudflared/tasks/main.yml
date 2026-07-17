@@ -49,6 +49,8 @@
           service: http://localhost:80
         - hostname: nextcloud.andrerimes.com
           service: http://localhost:80
+        - hostname: argocd.andrerimes.com
+          service: http://localhost:80
         - service: http_status:404
         
         

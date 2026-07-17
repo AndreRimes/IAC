@@ -6,3 +6,5 @@
     - kubernetes
     - ingress-nginx
     - cloudflared
+    - sealed-secrets
+    - argocd

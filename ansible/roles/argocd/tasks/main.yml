@@ -1,0 +1,139 @@
+- name: Install Helm
+  shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  tags: argocd
+
+- name: Add argo Helm repo
+  command: helm repo add argo https://argoproj.github.io/argo-helm
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: helm_repo_add
+  changed_when: "'has been added' in helm_repo_add.stdout"
+  failed_when: helm_repo_add.rc != 0 and 'already exists' not in helm_repo_add.stderr
+  tags: argocd
+
+- name: Update Helm repos
+  command: helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  changed_when: false
+  tags: argocd
+
+- name: Create argocd config dir
+  file:
+    path: /etc/argocd
+    state: directory
+    mode: '0755'
+  tags: argocd
+
+- name: Copy argocd values file
+  copy:
+    src: values.yaml
+    dest: /etc/argocd/values.yaml
+    mode: '0644'
+  tags: argocd
+
+- name: Install/upgrade argocd
+  command: >
+    helm upgrade --install argocd argo/argo-cd
+    --namespace {{ argocd_namespace }} --create-namespace
+    --version {{ argocd_chart_version }}
+    -f /etc/argocd/values.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: helm_install
+  changed_when: "'has been upgraded' in helm_install.stdout or 'has been installed' in helm_install.stdout"
+  tags: argocd
+
+- name: Wait for argocd server to be ready
+  command: >
+    kubectl rollout status deployment/argocd-server
+    -n {{ argocd_namespace }} --timeout=300s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  changed_when: false
+  tags: argocd
+
+- name: Fail if git write-back password is not set
+  fail:
+    msg: >
+      argocd_git_password is empty. Image Updater needs a GitHub PAT (fine-grained,
+      contents:write on this repo) to push digest commits back. Put it in a vaulted
+      var file, e.g. ansible/group_vars/homelab/vault.yml, and re-run.
+  when: argocd_git_password | length == 0
+  tags: argocd
+
+
+- name: Apply git write-back credentials secret
+  command: kubectl apply -f -
+  args:
+    stdin: |
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: git-creds
+        namespace: {{ argocd_namespace }}
+      type: Opaque
+      stringData:
+        # to_json quotes and escapes, so a token containing YAML-special characters
+        # cannot break the document.
+        username: {{ argocd_git_username | to_json }}
+        password: {{ argocd_git_password | to_json }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: git_creds_apply
+  changed_when: "'unchanged' not in git_creds_apply.stdout"
+  no_log: true
+  tags: argocd
+
+- name: Copy argocd-image-updater values file
+  template:
+    src: image-updater-values.yaml.j2
+    dest: /etc/argocd/image-updater-values.yaml
+    mode: '0644'
+  tags: argocd
+
+- name: Install/upgrade argocd-image-updater
+  command: >
+    helm upgrade --install argocd-image-updater argo/argocd-image-updater
+    --namespace {{ argocd_namespace }}
+    --version {{ argocd_image_updater_chart_version }}
+    -f /etc/argocd/image-updater-values.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: iu_install
+  changed_when: "'has been upgraded' in iu_install.stdout or 'has been installed' in iu_install.stdout"
+  tags: argocd
+
+
+- name: Copy bootstrap root application
+  copy:
+    src: "{{ playbook_dir }}/../kubernetes/platform/argocd/root.yaml"
+    dest: /etc/argocd/root.yaml
+    mode: '0644'
+  tags: argocd
+
+- name: Copy homelab AppProject
+  copy:
+    src: "{{ playbook_dir }}/../kubernetes/platform/argocd/project.yaml"
+    dest: /etc/argocd/homelab-project.yaml
+    mode: '0644'
+  tags: argocd
+
+- name: Apply homelab AppProject
+  command: kubectl apply -f /etc/argocd/homelab-project.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: project_apply
+  changed_when: "'unchanged' not in project_apply.stdout"
+  tags: argocd
+
+- name: Apply bootstrap root application
+  command: kubectl apply -f /etc/argocd/root.yaml
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: root_apply
+  changed_when: "'unchanged' not in root_apply.stdout"
+  tags: argocd

@@ -70,4 +70,14 @@ spec:
             name: onabudget-external
             port:
               number: 3000
+  - host: argocd.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server-external
+            port:
+              number: 80
 

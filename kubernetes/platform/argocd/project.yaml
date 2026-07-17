@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: homelab
+  namespace: argocd
+spec:
+  description: Homelab workloads reconciled from github.com/AndreRimes/IAC
+
+  sourceRepos:
+    - https://github.com/AndreRimes/IAC.git
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+    - server: https://kubernetes.default.svc
+      namespace: bidnow-namespace
+    - server: https://kubernetes.default.svc
+      namespace: onabudget-namespace
+    - server: https://kubernetes.default.svc
+      namespace: portfolio-namespace
+    - server: https://kubernetes.default.svc
+      namespace: ingress-nginx
+
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

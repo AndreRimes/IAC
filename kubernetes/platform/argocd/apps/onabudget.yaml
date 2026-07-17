@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: onabudget
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: onabudget=andrerimes/onabudget
+    argocd-image-updater.argoproj.io/onabudget.update-strategy: digest
+    argocd-image-updater.argoproj.io/onabudget.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
+    argocd-image-updater.argoproj.io/git-branch: main
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/AndreRimes/IAC.git
+    targetRevision: main
+    path: kubernetes/apps/onabudget
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: onabudget-namespace
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      name: onabudget-deployment
+      jsonPointers:
+        - /spec/replicas
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

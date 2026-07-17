@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: bidnow
+  namespace: argocd
+  annotations:
+    argocd-image-updater.argoproj.io/image-list: >-
+      front=andrerimes/bidnow-front,
+      back=andrerimes/bidnow-back,
+      recommendation=andrerimes/bidnow-recommendation
+    argocd-image-updater.argoproj.io/front.update-strategy: digest
+    argocd-image-updater.argoproj.io/front.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/back.update-strategy: digest
+    argocd-image-updater.argoproj.io/back.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/recommendation.update-strategy: digest
+    argocd-image-updater.argoproj.io/recommendation.allow-tags: regexp:^latest$
+    argocd-image-updater.argoproj.io/write-back-method: git:secret:argocd/git-creds
+    argocd-image-updater.argoproj.io/write-back-target: kustomization
+    argocd-image-updater.argoproj.io/git-branch: main
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/AndreRimes/IAC.git
+    targetRevision: main
+    path: kubernetes/apps/bidnow
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: bidnow-namespace
+
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true

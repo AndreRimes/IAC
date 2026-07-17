@@ -1,0 +1,17 @@
+config:
+  # v1.2.x runs as a controller that reads Application CRs from the API server
+  # directly, so there is no ArgoCD API token to mint or rotate. It watches its own
+  # namespace by default, which is where our Applications live.
+  log.level: info
+
+  git.user: "{{ argocd_git_commit_user }}"
+  git.email: "{{ argocd_git_commit_mail }}"
+
+  # Docker Hub throttles anonymous pulls and the updater re-checks every image on an
+  # interval (2m by default). If the logs start showing 429s, add credentials here.
+  registries:
+    - name: Docker Hub
+      api_url: https://registry-1.docker.io
+      prefix: docker.io
+      ping: yes
+      defaultns: library

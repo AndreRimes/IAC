@@ -1,0 +1,52 @@
+- name: Install Helm
+  shell: |
+    curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+  args:
+    creates: /usr/local/bin/helm
+  tags: sealed-secrets
+
+- name: Add sealed-secrets Helm repo
+  command: helm repo add sealed-secrets https://bitnami.github.io/sealed-secrets
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: helm_repo_add
+  changed_when: "'has been added' in helm_repo_add.stdout"
+  failed_when: helm_repo_add.rc != 0 and 'already exists' not in helm_repo_add.stderr
+  tags: sealed-secrets
+
+- name: Update Helm repos
+  command: helm repo update
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  changed_when: false
+  tags: sealed-secrets
+
+- name: Install/upgrade sealed-secrets controller
+  command: >
+    helm upgrade --install sealed-secrets sealed-secrets/sealed-secrets
+    --namespace {{ sealed_secrets_namespace }} --create-namespace
+    --version {{ sealed_secrets_chart_version }}
+    --set-string fullnameOverride={{ sealed_secrets_controller_name }}
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  register: helm_install
+  changed_when: "'has been upgraded' in helm_install.stdout or 'has been installed' in helm_install.stdout"
+  tags: sealed-secrets
+
+- name: Wait for sealed-secrets controller to be ready
+  command: >
+    kubectl rollout status deployment/{{ sealed_secrets_controller_name }}
+    -n {{ sealed_secrets_namespace }} --timeout=180s
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf
+  changed_when: false
+  tags: sealed-secrets
+
+- name: Remind about master key backup
+  debug:
+    msg: >
+      Back up the sealed-secrets master key if you have not already:
+      kubectl get secret -n {{ sealed_secrets_namespace }}
+      -l sealedsecrets.bitnami.com/sealed-secrets-key -o yaml > sealed-secrets-master.key
+      Store it outside this repo. Losing it makes every SealedSecret undecryptable.
+  tags: sealed-secrets
