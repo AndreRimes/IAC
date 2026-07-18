@@ -14,5 +14,8 @@ spec:
     namespace: bidnow-namespace
 
   syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
     syncOptions:
       - CreateNamespace=true
