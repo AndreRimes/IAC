@@ -1,9 +1,8 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - portfolio.yml
-
 images:
   - name: andrerimes/portfolio
-    newTag: main-73cd7fe
+    newTag: main-82be5ad
+    newName: andrerimes/portfolio
