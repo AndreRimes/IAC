@@ -9,9 +9,6 @@ spec:
       commonUpdateSettings:
         updateStrategy: digest
         allowTags: "^latest$"
-      # All three bidnow images share one ImageUpdater because they share one
-      # Application and one kustomization.yaml -- separate CRs would race each
-      # other committing to the same file.
       images:
         - alias: front
           imageName: andrerimes/bidnow-front
