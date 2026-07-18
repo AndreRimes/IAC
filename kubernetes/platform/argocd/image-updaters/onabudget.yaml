@@ -1,0 +1,22 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: onabudget
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: onabudget
+      commonUpdateSettings:
+        updateStrategy: digest
+        allowTags: "^latest$"
+      images:
+        - alias: onabudget
+          imageName: andrerimes/onabudget
+          manifestTargets:
+            kustomize:
+              name: andrerimes/onabudget
+      writeBackConfig:
+        method: git:secret:argocd/git-creds
+        gitConfig:
+          branch: main
+          writeBackTarget: "kustomization:/kubernetes/apps/onabudget"

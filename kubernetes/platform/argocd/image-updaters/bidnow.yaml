@@ -1,0 +1,35 @@
+apiVersion: argocd-image-updater.argoproj.io/v1alpha1
+kind: ImageUpdater
+metadata:
+  name: bidnow
+  namespace: argocd
+spec:
+  applicationRefs:
+    - namePattern: bidnow
+      commonUpdateSettings:
+        updateStrategy: digest
+        allowTags: "^latest$"
+      # All three bidnow images share one ImageUpdater because they share one
+      # Application and one kustomization.yaml -- separate CRs would race each
+      # other committing to the same file.
+      images:
+        - alias: front
+          imageName: andrerimes/bidnow-front
+          manifestTargets:
+            kustomize:
+              name: andrerimes/bidnow-front
+        - alias: back
+          imageName: andrerimes/bidnow-back
+          manifestTargets:
+            kustomize:
+              name: andrerimes/bidnow-back
+        - alias: recommendation
+          imageName: andrerimes/bidnow-recommendation
+          manifestTargets:
+            kustomize:
+              name: andrerimes/bidnow-recommendation
+      writeBackConfig:
+        method: git:secret:argocd/git-creds
+        gitConfig:
+          branch: main
+          writeBackTarget: "kustomization:/kubernetes/apps/bidnow"
