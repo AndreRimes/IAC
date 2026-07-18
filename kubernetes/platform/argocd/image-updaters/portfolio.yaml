@@ -10,14 +10,15 @@ spec:
   applicationRefs:
     - namePattern: portfolio
       commonUpdateSettings:
-        # "latest" here means newest-build -- it sorts candidate tags by the image's
-        # build timestamp from the registry, NOT by the tag named "latest". That is
+        # Sorts candidate tags by the image's build timestamp from the registry --
         # the only ordering that works for content-addressed tags like main-73cd7fe,
-        # which have no semver or alphabetical sequence.
-        updateStrategy: latest
-        # Only CI-produced commit tags. Excludes "latest" and "buildcache", which
-        # would otherwise be candidates and would defeat the point of pinning.
-        allowTags: "^main-[0-9a-f]{7}$"
+        # which have no semver or alphabetical sequence. (Formerly named "latest";
+        # that spelling still works but logs a deprecation warning.)
+        updateStrategy: newest-build
+        # The "regexp:" prefix is required -- allowTags is a match-option string, not
+        # a bare pattern. Without it the option is silently ignored (logged only as a
+        # warning) and every tag becomes a candidate, including buildcache.
+        allowTags: "regexp:^main-[0-9a-f]{7}$"
       images:
         - alias: portfolio
           imageName: andrerimes/portfolio

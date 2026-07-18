@@ -8,8 +8,8 @@ spec:
     - namePattern: onabudget
       commonUpdateSettings:
         # newest-build ordering over CI commit tags -- see portfolio.yaml for why.
-        updateStrategy: latest
-        allowTags: "^main-[0-9a-f]{7}$"
+        updateStrategy: newest-build
+        allowTags: "regexp:^main-[0-9a-f]{7}$"
       images:
         - alias: onabudget
           imageName: andrerimes/onabudget

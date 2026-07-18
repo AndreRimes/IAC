@@ -8,8 +8,8 @@ spec:
     - namePattern: bidnow
       commonUpdateSettings:
         # newest-build ordering over CI commit tags -- see portfolio.yaml for why.
-        updateStrategy: latest
-        allowTags: "^main-[0-9a-f]{7}$"
+        updateStrategy: newest-build
+        allowTags: "regexp:^main-[0-9a-f]{7}$"
       # All three bidnow images share one ImageUpdater because they share one
       # Application and one kustomization.yaml -- separate CRs would race each
       # other committing to the same file.
@@ -32,7 +32,7 @@ spec:
           # stays on digest tracking until its pipeline is updated like portfolio's.
           commonUpdateSettings:
             updateStrategy: digest
-            allowTags: "^latest$"
+            allowTags: "regexp:^latest$"
           manifestTargets:
             kustomize:
               name: andrerimes/bidnow-recommendation
