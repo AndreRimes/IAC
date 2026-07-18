@@ -1,3 +1,6 @@
+# Image Updater v1.2 is CRD-driven: it watches ImageUpdater resources in its own
+# namespace (argocd), NOT annotations on Application resources. The annotation style
+# documented in most tutorials is the legacy v0.x path and is silently ignored here.
 apiVersion: argocd-image-updater.argoproj.io/v1alpha1
 kind: ImageUpdater
 metadata:
@@ -7,15 +10,25 @@ spec:
   applicationRefs:
     - namePattern: portfolio
       commonUpdateSettings:
-        updateStrategy: digest
-        allowTags: "^latest$"
+        # "latest" here means newest-build -- it sorts candidate tags by the image's
+        # build timestamp from the registry, NOT by the tag named "latest". That is
+        # the only ordering that works for content-addressed tags like main-73cd7fe,
+        # which have no semver or alphabetical sequence.
+        updateStrategy: latest
+        # Only CI-produced commit tags. Excludes "latest" and "buildcache", which
+        # would otherwise be candidates and would defeat the point of pinning.
+        allowTags: "^main-[0-9a-f]{7}$"
       images:
         - alias: portfolio
           imageName: andrerimes/portfolio
           manifestTargets:
             kustomize:
+              # Must match the `images[].name` entry in the target kustomization.yaml
+              # verbatim, or the updater has nothing to rewrite.
               name: andrerimes/portfolio
       writeBackConfig:
+        # git:secret:<namespace>/<name> -- the PAT lives in the git-creds secret
+        # created by ansible/roles/argocd from a vaulted variable.
         method: git:secret:argocd/git-creds
         gitConfig:
           branch: main

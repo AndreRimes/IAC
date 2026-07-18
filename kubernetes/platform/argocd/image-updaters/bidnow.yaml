@@ -7,8 +7,12 @@ spec:
   applicationRefs:
     - namePattern: bidnow
       commonUpdateSettings:
-        updateStrategy: digest
-        allowTags: "^latest$"
+        # newest-build ordering over CI commit tags -- see portfolio.yaml for why.
+        updateStrategy: latest
+        allowTags: "^main-[0-9a-f]{7}$"
+      # All three bidnow images share one ImageUpdater because they share one
+      # Application and one kustomization.yaml -- separate CRs would race each
+      # other committing to the same file.
       images:
         - alias: front
           imageName: andrerimes/bidnow-front
@@ -22,6 +26,13 @@ spec:
               name: andrerimes/bidnow-back
         - alias: recommendation
           imageName: andrerimes/bidnow-recommendation
+          # Override: this repo's CI still pushes only :latest -- there is not a
+          # single main-<sha> tag on Docker Hub for it. Applying the sha pattern
+          # here would match nothing and silently freeze the image forever, so it
+          # stays on digest tracking until its pipeline is updated like portfolio's.
+          commonUpdateSettings:
+            updateStrategy: digest
+            allowTags: "^latest$"
           manifestTargets:
             kustomize:
               name: andrerimes/bidnow-recommendation

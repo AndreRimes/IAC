@@ -6,4 +6,4 @@ resources:
 
 images:
   - name: andrerimes/onabudget
-    newTag: latest
+    newTag: main-d20d6c3

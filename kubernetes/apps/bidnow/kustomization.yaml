@@ -13,8 +13,8 @@ resources:
 
 images:
   - name: andrerimes/bidnow-front
-    newTag: latest
+    newTag: main-135977a
   - name: andrerimes/bidnow-back
-    newTag: latest
+    newTag: main-552a3ae
   - name: andrerimes/bidnow-recommendation
     newTag: latest

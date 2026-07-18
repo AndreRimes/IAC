@@ -6,4 +6,4 @@ resources:
 
 images:
   - name: andrerimes/portfolio
-    newTag: latest
+    newTag: main-73cd7fe
