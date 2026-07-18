@@ -4,5 +4,5 @@ resources:
   - portfolio.yml
 images:
   - name: andrerimes/portfolio
-    newTag: main-a9eece9
+    newTag: main-ebb61dd
     newName: andrerimes/portfolio
