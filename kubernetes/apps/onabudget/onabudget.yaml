@@ -9,7 +9,58 @@ metadata:
   name: onabudget-config
   namespace: onabudget-namespace
 data:
-  NEXT_PUBLIC_PB: "https://onabudget.fly.dev"
+  DATABASE_URL: "file:/data/db.sqlite"
+  NODE_ENV: "production"
+  BETTER_AUTH_URL: "https://onabudget.andrerimes.com/"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: onabudget-sqlite-pvc
+  namespace: onabudget-namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: onabudget-migrate-job
+  namespace: onabudget-namespace
+  annotations:
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      containers:
+        - name: drizzle-migrate
+          image: andrerimes/onabudget:latest
+          command: ["node", "/app/scripts/migrate.mjs"]
+          envFrom:
+            - configMapRef:
+                name: onabudget-config
+            - secretRef:
+                name: onabudget-secret
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
+          resources:
+            limits:
+              memory: "256Mi"
+              cpu: "250m"
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+      volumes:
+        - name: sqlite-data
+          persistentVolumeClaim:
+            claimName: onabudget-sqlite-pvc
+      restartPolicy: Never
+  backoffLimit: 4
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -27,20 +78,29 @@ spec:
         app: onabudget
     spec:
       containers:
-      - name: onabudget
-        image: andrerimes/onabudget:latest
-        envFrom:
-          - configMapRef:
-              name: onabudget-config
-        ports:
-        - containerPort: 3000
-        resources:
-          requests:
-            cpu: "200m"
-            memory: "256Mi"
-          limits:
-            memory: "512Mi"
-            cpu: "0.5"
+        - name: onabudget
+          image: andrerimes/onabudget:latest
+          envFrom:
+            - configMapRef:
+                name: onabudget-config
+            - secretRef:
+                name: onabudget-secret
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: sqlite-data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              memory: "512Mi"
+              cpu: "0.5"
+      volumes:
+        - name: sqlite-data
+          persistentVolumeClaim:
+            claimName: onabudget-sqlite-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -54,23 +114,3 @@ spec:
   ports:
     - port: 3000
       targetPort: 3000
----
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: onabudget-hpa
-  namespace: onabudget-namespace
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: onabudget-deployment
-  minReplicas: 1
-  maxReplicas: 5
-  metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 80
