@@ -31,8 +31,12 @@ metadata:
   name: onabudget-migrate-job
   namespace: onabudget-namespace
   annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    # Wave -1: after the SealedSecret (-2) so onabudget-secret exists, before the
+    # Deployment (0) so migrations land ahead of the rollout. NOT a PreSync hook --
+    # hooks run before the main sync, where the SealedSecret does not exist yet.
+    # Force+Replace recreates the Job, since spec.template is immutable.
+    argocd.argoproj.io/sync-wave: "-1"
+    argocd.argoproj.io/sync-options: Force=true,Replace=true
 spec:
   template:
     spec:
