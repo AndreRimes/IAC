@@ -22,6 +22,10 @@ spec:
       namespace: sonarqube-namespace
     - server: https://kubernetes.default.svc
       namespace: ingress-nginx
+    - server: https://kubernetes.default.svc
+      namespace: monitoring
+    - server: https://kubernetes.default.svc
+      namespace: kube-system
 
   clusterResourceWhitelist:
     - group: ""
