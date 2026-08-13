@@ -89,21 +89,18 @@ spec:
               mountPath: /opt/sonarqube/logs
             - name: temp
               mountPath: /opt/sonarqube/temp
-          # /api/system/status answers 200 while still STARTING, so readiness has to
-          # read the body -- an httpGet here would send traffic to a booting Sonar.
           readinessProbe:
             exec:
               command:
                 - sh
                 - -c
                 - >-
-                  wget --no-proxy -qO- http://localhost:9000/api/system/status
+                  curl -sf --noproxy '*' http://localhost:9000/api/system/status
                   | grep -qE '"status":"(UP|DB_MIGRATION_NEEDED|DB_MIGRATION_RUNNING)"'
             initialDelaySeconds: 60
             periodSeconds: 10
             timeoutSeconds: 5
             failureThreshold: 6
-          # Generous: first boot runs the schema migration, which is slow on this node.
           startupProbe:
             httpGet:
               path: /api/system/status
