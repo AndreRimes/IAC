@@ -19,6 +19,8 @@ spec:
     - server: https://kubernetes.default.svc
       namespace: portfolio-namespace
     - server: https://kubernetes.default.svc
+      namespace: sonarqube-namespace
+    - server: https://kubernetes.default.svc
       namespace: ingress-nginx
 
   clusterResourceWhitelist:

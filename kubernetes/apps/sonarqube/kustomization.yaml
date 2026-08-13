@@ -1,10 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
-  - resource.yaml
-  - bidnow.yaml
-  - onabudget.yaml
-  - portfolio.yaml
-  - argocd.yaml
+  - sonarqube-sealedsecret.yaml
+  - postgres.yaml
   - sonarqube.yaml
