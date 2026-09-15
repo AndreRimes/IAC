@@ -5,5 +5,5 @@ resources:
   - onabudget-sealedsecret.yaml
 images:
   - name: andrerimes/onabudget
-    newTag: main-7b64d59
+    newTag: main-effc5b3
     newName: andrerimes/onabudget
