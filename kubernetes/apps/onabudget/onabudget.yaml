@@ -12,6 +12,7 @@ data:
   DATABASE_URL: "file:/data/db.sqlite"
   NODE_ENV: "production"
   BETTER_AUTH_URL: "https://onabudget.andrerimes.com/"
+  ALLOW_SIGNUP: "true"
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
