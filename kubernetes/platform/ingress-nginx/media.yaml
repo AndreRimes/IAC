@@ -21,3 +21,51 @@ spec:
   ports:
     - port: 5055
       targetPort: 5055
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: qbittorrent-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 8080
+      targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: prowlarr-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 9696
+      targetPort: 9696
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: sonarr-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 8989
+      targetPort: 8989
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: radarr-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 7878
+      targetPort: 7878
