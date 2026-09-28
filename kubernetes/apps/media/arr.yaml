@@ -289,3 +289,46 @@ spec:
   ports:
     - port: 7878
       targetPort: 7878
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flaresolverr-deployment
+  namespace: media-namespace
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flaresolverr
+  template:
+    metadata:
+      labels:
+        app: flaresolverr
+    spec:
+      containers:
+        - name: flaresolverr
+          image: ghcr.io/flaresolverr/flaresolverr:latest
+          env:
+            - name: TZ
+              value: "America/Sao_Paulo"
+          ports:
+            - containerPort: 8191
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              memory: "1Gi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: flaresolverr-service
+  namespace: media-namespace
+spec:
+  type: ClusterIP
+  selector:
+    app: flaresolverr
+  ports:
+    - port: 8191
+      targetPort: 8191
