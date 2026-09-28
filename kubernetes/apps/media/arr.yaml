@@ -332,3 +332,77 @@ spec:
   ports:
     - port: 8191
       targetPort: 8191
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lazylibrarian-config-pvc
+  namespace: media-namespace
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lazylibrarian-deployment
+  namespace: media-namespace
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lazylibrarian
+  template:
+    metadata:
+      labels:
+        app: lazylibrarian
+    spec:
+      containers:
+        - name: lazylibrarian
+          image: lscr.io/linuxserver/lazylibrarian:latest
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/Sao_Paulo"
+          ports:
+            - containerPort: 5299
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: data
+              mountPath: /data
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "128Mi"
+            limits:
+              memory: "512Mi"
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: lazylibrarian-config-pvc
+        - name: data
+          hostPath:
+            path: /srv/media
+            type: Directory
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lazylibrarian-service
+  namespace: media-namespace
+spec:
+  type: ClusterIP
+  selector:
+    app: lazylibrarian
+  ports:
+    - port: 5299
+      targetPort: 5299
