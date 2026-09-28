@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: media
+  namespace: argocd
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/AndreRimes/IAC.git
+    targetRevision: main
+    path: kubernetes/apps/media
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: media-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

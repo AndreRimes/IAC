@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: jellyfin-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 8096
+      targetPort: 8096
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: seerr-external
+  namespace: ingress-nginx
+spec:
+  type: ExternalName
+  externalName: seerr-service.media-namespace.svc.cluster.local
+  ports:
+    - port: 5055
+      targetPort: 5055

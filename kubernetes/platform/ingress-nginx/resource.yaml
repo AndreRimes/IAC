@@ -91,4 +91,24 @@ spec:
             name: sonarqube-external
             port:
               number: 9000
+  - host: jellyfin.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: jellyfin-external
+            port:
+              number: 8096
+  - host: seerr.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: seerr-external
+            port:
+              number: 5055
 
