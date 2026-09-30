@@ -9,3 +9,4 @@ resources:
   - argocd.yaml
   - sonarqube.yaml
   - media.yaml
+  - registry.yaml

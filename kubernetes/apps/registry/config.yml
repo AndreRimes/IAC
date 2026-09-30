@@ -1,0 +1,21 @@
+version: 0.1
+
+log:
+  level: info
+  formatter: text
+
+storage:
+  filesystem:
+    rootdirectory: /var/lib/registry
+  delete:
+    enabled: true
+
+auth:
+  htpasswd:
+    realm: Registry
+    path: /auth/htpasswd
+
+http:
+  addr: 0.0.0.0:5000
+  headers:
+    X-Content-Type-Options: [nosniff]

@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: registry
+  namespace: argocd
+spec:
+  project: homelab
+  source:
+    repoURL: https://github.com/AndreRimes/IAC.git
+    targetRevision: main
+    path: kubernetes/apps/registry
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: registry-namespace
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+
