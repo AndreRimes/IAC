@@ -14,9 +14,11 @@ spec:
       labels:
         app: bidnow-frontend
     spec:
+      imagePullSecrets:
+      - name: registry-pull
       containers:
       - name: bidnow-frontend
-        image: andrerimes/bidnow-front:latest
+        image: registry.andrerimes.com/andrerimes/bidnow-front:main-e1292e0
         ports:
         - containerPort: 3000
         resources:

@@ -10,11 +10,12 @@ resources:
   - postgres-sealedsecret.yaml
   - backend-sealedsecret.yaml
   - recommendation-sealedsecret.yaml
+  - registry-pull-sealedsecret.yaml
 
 images:
-  - name: andrerimes/bidnow-front
-    newTag: main-135977a
-  - name: andrerimes/bidnow-back
-    newTag: main-552a3ae
-  - name: andrerimes/bidnow-recommendation
-    newTag: latest
+  - name: registry.andrerimes.com/andrerimes/bidnow-front
+    newTag: main-e1292e0
+  - name: registry.andrerimes.com/andrerimes/bidnow-back
+    newTag: main-702608b
+  - name: registry.andrerimes.com/andrerimes/bidnow-recommendation
+    newTag: main-834748e

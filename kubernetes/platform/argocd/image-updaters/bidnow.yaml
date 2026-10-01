@@ -15,27 +15,20 @@ spec:
       # other committing to the same file.
       images:
         - alias: front
-          imageName: andrerimes/bidnow-front
+          imageName: registry.andrerimes.com/andrerimes/bidnow-front
           manifestTargets:
             kustomize:
-              name: andrerimes/bidnow-front
+              name: registry.andrerimes.com/andrerimes/bidnow-front
         - alias: back
-          imageName: andrerimes/bidnow-back
+          imageName: registry.andrerimes.com/andrerimes/bidnow-back
           manifestTargets:
             kustomize:
-              name: andrerimes/bidnow-back
+              name: registry.andrerimes.com/andrerimes/bidnow-back
         - alias: recommendation
-          imageName: andrerimes/bidnow-recommendation
-          # Override: this repo's CI still pushes only :latest -- there is not a
-          # single main-<sha> tag on Docker Hub for it. Applying the sha pattern
-          # here would match nothing and silently freeze the image forever, so it
-          # stays on digest tracking until its pipeline is updated like portfolio's.
-          commonUpdateSettings:
-            updateStrategy: digest
-            allowTags: "regexp:^latest$"
+          imageName: registry.andrerimes.com/andrerimes/bidnow-recommendation
           manifestTargets:
             kustomize:
-              name: andrerimes/bidnow-recommendation
+              name: registry.andrerimes.com/andrerimes/bidnow-recommendation
       writeBackConfig:
         method: git:secret:argocd/git-creds
         gitConfig:

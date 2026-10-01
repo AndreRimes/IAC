@@ -25,9 +25,11 @@ spec:
       labels:
         app: bidnow-backend
     spec:
+      imagePullSecrets:
+      - name: registry-pull
       containers:
       - name: bidnow-backend
-        image: andrerimes/bidnow-back:latest
+        image: registry.andrerimes.com/andrerimes/bidnow-back:main-702608b
         imagePullPolicy: Always
         ports:
         - containerPort: 8081
@@ -56,9 +58,11 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+      - name: registry-pull
       containers:
       - name: prisma-migrate
-        image: andrerimes/bidnow-back:latest
+        image: registry.andrerimes.com/andrerimes/bidnow-back:main-702608b
         command: ["npx", "prisma", "migrate", "deploy"]
         envFrom:
         - configMapRef:
@@ -92,4 +96,4 @@ spec:
   - name: websocket
     protocol: TCP
     port: 3334
-    targetPort: 3334 
+    targetPort: 3334

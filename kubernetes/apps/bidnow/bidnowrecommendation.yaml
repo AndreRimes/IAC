@@ -13,9 +13,11 @@ spec:
       labels:
         app: bidnow-recommendation
     spec:
+      imagePullSecrets:
+      - name: registry-pull
       containers:
       - name: bidnow-recommendation
-        image: andrerimes/bidnow-recommendation:latest
+        image: registry.andrerimes.com/andrerimes/bidnow-recommendation:main-834748e
         imagePullPolicy: Always
         env:
         - name: DB_URL
