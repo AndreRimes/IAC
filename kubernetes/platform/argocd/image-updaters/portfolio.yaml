@@ -21,12 +21,12 @@ spec:
         allowTags: "regexp:^main-[0-9a-f]{7}$"
       images:
         - alias: portfolio
-          imageName: andrerimes/portfolio
+          imageName: registry.andrerimes.com/andrerimes/portfolio
           manifestTargets:
             kustomize:
               # Must match the `images[].name` entry in the target kustomization.yaml
               # verbatim, or the updater has nothing to rewrite.
-              name: andrerimes/portfolio
+              name: registry.andrerimes.com/andrerimes/portfolio
       writeBackConfig:
         # git:secret:<namespace>/<name> -- the PAT lives in the git-creds secret
         # created by ansible/roles/argocd from a vaulted variable.

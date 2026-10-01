@@ -18,9 +18,11 @@ spec:
       labels:
         app: portfolio
     spec:
+      imagePullSecrets:
+      - name: registry-pull
       containers:
       - name: portfolio
-        image: andrerimes/portfolio:latest
+        image: registry.andrerimes.com/andrerimes/portfolio:main-25bec95
         ports:
         - containerPort: 3000
         resources:
