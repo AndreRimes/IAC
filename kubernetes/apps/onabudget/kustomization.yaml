@@ -3,7 +3,7 @@ kind: Kustomization
 resources:
   - onabudget.yaml
   - onabudget-sealedsecret.yaml
+  - registry-pull-sealedsecret.yaml
 images:
-  - name: andrerimes/onabudget
-    newTag: main-1317bbc
-    newName: andrerimes/onabudget
+  - name: registry.andrerimes.com/andrerimes/onabudget
+    newTag: main-5700e21

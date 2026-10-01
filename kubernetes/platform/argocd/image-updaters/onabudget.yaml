@@ -12,10 +12,10 @@ spec:
         allowTags: "regexp:^main-[0-9a-f]{7}$"
       images:
         - alias: onabudget
-          imageName: andrerimes/onabudget
+          imageName: registry.andrerimes.com/andrerimes/onabudget
           manifestTargets:
             kustomize:
-              name: andrerimes/onabudget
+              name: registry.andrerimes.com/andrerimes/onabudget
       writeBackConfig:
         method: git:secret:argocd/git-creds
         gitConfig:

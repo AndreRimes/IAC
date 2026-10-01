@@ -37,9 +37,11 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+        - name: registry-pull
       containers:
         - name: drizzle-migrate
-          image: andrerimes/onabudget:latest
+          image: registry.andrerimes.com/andrerimes/onabudget:main-5700e21
           command: ["node", "/app/scripts/migrate.mjs"]
           envFrom:
             - configMapRef:
@@ -78,9 +80,11 @@ spec:
       labels:
         app: onabudget
     spec:
+      imagePullSecrets:
+        - name: registry-pull
       containers:
         - name: onabudget
-          image: andrerimes/onabudget:latest
+          image: registry.andrerimes.com/andrerimes/onabudget:main-5700e21
           envFrom:
             - configMapRef:
                 name: onabudget-config
