@@ -17,5 +17,6 @@ auth:
 
 http:
   addr: 0.0.0.0:5000
+  relativeurls: true
   headers:
     X-Content-Type-Options: [nosniff]
