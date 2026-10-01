@@ -29,6 +29,8 @@ spec:
       app: registry
   template:
     metadata:
+      annotations:
+        registry.andrerimes.com/auth-revision: "2"
       labels:
         app: registry
     spec:

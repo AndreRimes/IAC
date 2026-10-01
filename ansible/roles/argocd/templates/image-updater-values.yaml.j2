@@ -7,11 +7,9 @@ config:
   git.user: "{{ argocd_git_commit_user }}"
   git.email: "{{ argocd_git_commit_mail }}"
 
-  # Docker Hub throttles anonymous pulls and the updater re-checks every image on an
-  # interval (2m by default). If the logs start showing 429s, add credentials here.
   registries:
-    - name: Docker Hub
-      api_url: https://registry-1.docker.io
-      prefix: docker.io
+    - name: Homelab Registry
+      api_url: https://registry.andrerimes.com
+      prefix: registry.andrerimes.com
+      credentials: pullsecret:argocd/registry-pull
       ping: yes
-      defaultns: library
