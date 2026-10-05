@@ -1,6 +1,5 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 resources:
   - namespace.yaml
   - postgres.yaml
@@ -11,11 +10,13 @@ resources:
   - backend-sealedsecret.yaml
   - recommendation-sealedsecret.yaml
   - registry-pull-sealedsecret.yaml
-
 images:
   - name: registry.andrerimes.com/andrerimes/bidnow-front
     newTag: main-e1292e0
+    newName: registry.andrerimes.com/andrerimes/bidnow-front
   - name: registry.andrerimes.com/andrerimes/bidnow-back
     newTag: main-702608b
+    newName: registry.andrerimes.com/andrerimes/bidnow-back
   - name: registry.andrerimes.com/andrerimes/bidnow-recommendation
-    newTag: main-834748e
+    newTag: main-1300105
+    newName: registry.andrerimes.com/andrerimes/bidnow-recommendation
