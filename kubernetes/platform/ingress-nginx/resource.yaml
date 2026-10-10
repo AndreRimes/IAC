@@ -152,6 +152,16 @@ spec:
             name: radarr-external
             port:
               number: 7878
+  - host: bazarr.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: bazarr-external
+            port:
+              number: 6767
   - host: lazylibrarian.andrerimes.com
     http:
       paths:
