@@ -32,6 +32,8 @@
       origincert: /etc/cloudflared/cert.pem
       
       ingress:
+        - hostname: grafana.andrerimes.com
+          service: http://localhost:80
         - hostname: onabudget.andrerimes.com
           service: http://localhost:80
         - hostname: portfolio.andrerimes.com
@@ -60,6 +62,12 @@
         
         
   notify: Restart cloudflared
+  tags: cloudflared
+
+- name: Route Grafana DNS to the homelab tunnel
+  command: cloudflared tunnel route dns homelab grafana.andrerimes.com
+  register: grafana_dns_route
+  changed_when: "'Added CNAME' in grafana_dns_route.stderr"
   tags: cloudflared
 
 - name: Create systemd service for cloudflared

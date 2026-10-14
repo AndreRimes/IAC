@@ -1,0 +1,1185 @@
+{
+  "uid": "homelab-infra",
+  "title": "Infrastructure",
+  "schemaVersion": 39,
+  "version": 1,
+  "editable": false,
+  "tags": [
+    "infrastructure"
+  ],
+  "timezone": "browser",
+  "refresh": "30s",
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "namespace",
+        "label": "Namespace",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "query": {
+          "query": "label_values(kube_namespace_created, namespace)",
+          "refId": "NamespaceVariable"
+        },
+        "refresh": 1,
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "current": {
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        },
+        "sort": 1
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "Cluster \u2014 actual usage and headroom",
+      "description": "",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "title": "CPU",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Non-idle CPU usage over the rate interval; idle CPU is current headroom, not a reservation.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(max by(instance,cpu)(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}))",
+          "legendFormat": "Total cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "(count(max by(instance,cpu)(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}))) - (sum(max by(instance,cpu)(rate(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}[$__rate_interval]))))",
+          "legendFormat": "Busy cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(max by(instance,cpu)(rate(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}[$__rate_interval])))",
+          "legendFormat": "Idle cores",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "D",
+          "expr": "100 * ((count(max by(instance,cpu)(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}))) - (sum(max by(instance,cpu)(rate(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"}[$__rate_interval]))))) / (count(max by(instance,cpu)(node_cpu_seconds_total{job=\"node-exporter\",mode=\"idle\"})))",
+          "legendFormat": "Used %",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 3,
+      "title": "RAM",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 1,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Available RAM includes reclaimable memory. Namespace working sets do not include all host overhead.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(instance)(node_memory_MemTotal_bytes{job=\"node-exporter\"}))",
+          "legendFormat": "Total RAM",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "(sum(max by(instance)(node_memory_MemTotal_bytes{job=\"node-exporter\"}))) - (sum(max by(instance)(node_memory_MemAvailable_bytes{job=\"node-exporter\"})))",
+          "legendFormat": "Used RAM",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(max by(instance)(node_memory_MemAvailable_bytes{job=\"node-exporter\"}))",
+          "legendFormat": "Available RAM",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "D",
+          "expr": "100 * ((sum(max by(instance)(node_memory_MemTotal_bytes{job=\"node-exporter\"}))) - (sum(max by(instance)(node_memory_MemAvailable_bytes{job=\"node-exporter\"})))) / (sum(max by(instance)(node_memory_MemTotal_bytes{job=\"node-exporter\"})))",
+          "legendFormat": "Used %",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 4,
+      "title": "Physical disks",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 1,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Deduplicated physical filesystems. Available space excludes filesystem-reserved blocks; namespace disks share this capacity.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(instance,device)(node_filesystem_size_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}))",
+          "legendFormat": "Total capacity",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(max by(instance,device)(node_filesystem_size_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}) - max by(instance,device)(node_filesystem_free_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}))",
+          "legendFormat": "Used space",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "expr": "sum(max by(instance,device)(node_filesystem_avail_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}))",
+          "legendFormat": "Available space",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "D",
+          "expr": "100 * (sum(max by(instance,device)(node_filesystem_size_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}) - max by(instance,device)(node_filesystem_free_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}))) / (sum(max by(instance,device)(node_filesystem_size_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"})))",
+          "legendFormat": "Used %",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Used %"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "percent"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 5,
+      "type": "row",
+      "title": "Scheduling \u2014 requests, separate from actual usage",
+      "description": "",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 6,
+      "title": "CPU scheduling capacity",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 7,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Active pod requests, including init-container maximum and pod overhead. Negative headroom indicates over-reservation. Assumes no restartable init sidecars (none are currently deployed).",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(node)(kube_node_status_allocatable{resource=\"cpu\"}))",
+          "legendFormat": "Allocatable",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "((sum((max by(namespace,pod)(label_replace(sum by(namespace,pod)(max by(namespace,pod,container)(kube_pod_container_resource_requests{resource=\"cpu\"})),\"request_kind\",\"regular\",\"pod\",\".*\") or label_replace(max by(namespace,pod)(kube_pod_init_container_resource_requests{resource=\"cpu\"}),\"request_kind\",\"init\",\"pod\",\".*\"))) * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)) + (sum(kube_pod_overhead_cpu_cores * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)))",
+          "legendFormat": "Pod requests",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "expr": "(sum(max by(node)(kube_node_status_allocatable{resource=\"cpu\"}))) - (((sum((max by(namespace,pod)(label_replace(sum by(namespace,pod)(max by(namespace,pod,container)(kube_pod_container_resource_requests{resource=\"cpu\"})),\"request_kind\",\"regular\",\"pod\",\".*\") or label_replace(max by(namespace,pod)(kube_pod_init_container_resource_requests{resource=\"cpu\"}),\"request_kind\",\"init\",\"pod\",\".*\"))) * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)) + (sum(kube_pod_overhead_cpu_cores * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0))))",
+          "legendFormat": "Unrequested",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 7,
+      "title": "MEMORY scheduling capacity",
+      "type": "stat",
+      "gridPos": {
+        "x": 12,
+        "y": 7,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Active pod requests, including init-container maximum and pod overhead. Negative headroom indicates over-reservation. Assumes no restartable init sidecars (none are currently deployed).",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(node)(kube_node_status_allocatable{resource=\"memory\"}))",
+          "legendFormat": "Allocatable",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "((sum((max by(namespace,pod)(label_replace(sum by(namespace,pod)(max by(namespace,pod,container)(kube_pod_container_resource_requests{resource=\"memory\"})),\"request_kind\",\"regular\",\"pod\",\".*\") or label_replace(max by(namespace,pod)(kube_pod_init_container_resource_requests{resource=\"memory\"}),\"request_kind\",\"init\",\"pod\",\".*\"))) * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)) + (sum(kube_pod_overhead_memory_bytes * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)))",
+          "legendFormat": "Pod requests",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "C",
+          "expr": "(sum(max by(node)(kube_node_status_allocatable{resource=\"memory\"}))) - (((sum((max by(namespace,pod)(label_replace(sum by(namespace,pod)(max by(namespace,pod,container)(kube_pod_container_resource_requests{resource=\"memory\"})),\"request_kind\",\"regular\",\"pod\",\".*\") or label_replace(max by(namespace,pod)(kube_pod_init_container_resource_requests{resource=\"memory\"}),\"request_kind\",\"init\",\"pod\",\".*\"))) * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0)) + (sum(kube_pod_overhead_memory_bytes * on(namespace,pod) (max by(namespace,pod)(kube_pod_status_phase{phase=~\"Running|Pending\"} == 1))) or vector(0))))",
+          "legendFormat": "Unrequested",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Namespaces \u2014 largest consumers first",
+      "description": "",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 9,
+      "title": "CPU by namespace",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 13,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Measured usage. Disk combines persistent and ephemeral bytes only when both measurements are available; it is not a namespace quota.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sort_desc(sum by(namespace)(max by(namespace,pod,container)(rate(container_cpu_usage_seconds_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"}[$__rate_interval]))))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 10,
+      "title": "RAM by namespace",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 8,
+        "y": 13,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Measured usage. Disk combines persistent and ephemeral bytes only when both measurements are available; it is not a namespace quota.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sort_desc(sum by(namespace)(max by(namespace,pod,container)(container_memory_working_set_bytes{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"})))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 11,
+      "title": "Disk by namespace",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 16,
+        "y": 13,
+        "w": 8,
+        "h": 9
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Measured usage. Disk combines persistent and ephemeral bytes only when both measurements are available; it is not a namespace quota.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sort_desc((sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 12,
+      "title": "Namespace summary",
+      "type": "table",
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 24,
+        "h": 10
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Sort any column to find the largest consumers. Blank storage values mean collection is incomplete or stale. Persistent includes PVCs and configured application host paths. Ephemeral includes pod writable layers, logs and disk-backed temporary volumes.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(max by(namespace,pod,container)(rate(container_cpu_usage_seconds_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"}[$__rate_interval])))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by(namespace)(max by(namespace,pod,container)(container_memory_working_set_bytes{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"}))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "expr": "sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "E",
+          "expr": "(sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "CPU cores"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "cores"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "RAM"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Persistent disk"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Temporary disk"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Total disk"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bytes"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "CPU cores",
+            "desc": true
+          }
+        ]
+      },
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "namespace",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Time 5": true
+            },
+            "renameByName": {
+              "namespace": "Namespace",
+              "Value #A": "CPU cores",
+              "Value #B": "RAM",
+              "Value #C": "Persistent disk",
+              "Value #D": "Temporary disk",
+              "Value #E": "Total disk"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "row",
+      "title": "History",
+      "description": "",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 14,
+      "title": "CPU usage",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(max by(namespace,pod,container)(rate(container_cpu_usage_seconds_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"}[$__rate_interval])))",
+          "legendFormat": "{{namespace}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cores",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 15,
+      "title": "RAM usage",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 8,
+        "y": 33,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(max by(namespace,pod,container)(container_memory_working_set_bytes{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",container!=\"\",container!=\"POD\",namespace=~\"$namespace\",namespace!=\"\"}))",
+          "legendFormat": "{{namespace}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 16,
+      "title": "Disk usage",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 16,
+        "y": 33,
+        "w": 8,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
+          "legendFormat": "{{namespace}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "row",
+      "title": "Filesystems and collection health",
+      "description": "",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 41,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 18,
+      "title": "Filesystem used",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 42,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by(instance,device,mountpoint)(node_filesystem_size_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"}) - max by(instance,device,mountpoint)(node_filesystem_free_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"})",
+          "legendFormat": "{{mountpoint}} ({{device}})",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 19,
+      "title": "Filesystem available",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 42,
+        "w": 12,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "max by(instance,device,mountpoint)(node_filesystem_avail_bytes{job=\"node-exporter\",fstype=~\"ext[234]|xfs|btrfs|vfat|zfs|ntfs|fuseblk\"})",
+          "legendFormat": "{{mountpoint}} ({{device}})",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 20,
+      "title": "Disk collection successful",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 49,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "1 = complete and fresh; 0 = failed or stale. Disk scans run every five minutes; values expire after ten minutes.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "infrastructure_storage_collection_success{job=\"infrastructure-storage-collector\"}",
+          "legendFormat": "{{kind}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 21,
+      "title": "Age of last successful disk scan",
+      "type": "stat",
+      "gridPos": {
+        "x": 6,
+        "y": 49,
+        "w": 6,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "time() - infrastructure_storage_collection_last_success_timestamp_seconds{job=\"infrastructure-storage-collector\"}",
+          "legendFormat": "{{kind}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 22,
+      "title": "Scrape targets down",
+      "type": "table",
+      "gridPos": {
+        "x": 12,
+        "y": 49,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Existing control-plane listeners may be localhost-only. Failures here mean some metrics are unavailable; collection health is not a substitute for alerts.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "up == 0",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    }
+  ]
+}

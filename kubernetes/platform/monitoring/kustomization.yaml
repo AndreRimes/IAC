@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: monitoring
+resources:
+  - collector.yaml
+  - grafana-admin-sealedsecret.yaml
+configMapGenerator:
+  - name: grafana-dashboard-homelab-infra
+    options:
+      disableNameSuffixHash: true
+      labels:
+        infrastructure_dashboard: "1"
+    files:
+      - infrastructure.json
+  - name: infrastructure-storage-collector
+    files:
+      - collector.py
+generatorOptions:
+  disableNameSuffixHash: false

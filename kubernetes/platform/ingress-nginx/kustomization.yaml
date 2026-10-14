@@ -10,3 +10,4 @@ resources:
   - sonarqube.yaml
   - media.yaml
   - registry.yaml
+  - grafana.yaml

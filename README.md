@@ -14,4 +14,8 @@ by hand.
 | `kubernetes/apps/` | Workload manifests, one Kustomize directory per app |
 | `kubernetes/platform/argocd/` | The `AppProject`, the root app-of-apps, and one `Application` per workload under `apps/` |
 | `kubernetes/platform/ingress-nginx/` | The `global-ingress` and its `ExternalName` shims |
+| `kubernetes/platform/monitoring/` | Grafana/Prometheus values, Infrastructure dashboard, and namespace disk collector |
 
+The [Infrastructure dashboard](https://grafana.andrerimes.com) shows cluster headroom
+and namespace CPU, RAM and disk usage. See the [monitoring guide](kubernetes/platform/monitoring/README.md)
+for metric definitions, validation and safe adoption/rollback instructions.

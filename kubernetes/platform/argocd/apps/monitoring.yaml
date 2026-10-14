@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: homelab
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      chart: kube-prometheus-stack
+      targetRevision: 82.4.0
+      helm:
+        releaseName: monitoring
+        valueFiles:
+          - $values/kubernetes/platform/monitoring/values.yaml
+    - repoURL: https://github.com/AndreRimes/IAC.git
+      targetRevision: main
+      ref: values
+      path: kubernetes/platform/monitoring
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+    automated:
+      # Enable after the first adoption has been checked against the existing PVCs.
+      prune: false
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      - PruneLast=true

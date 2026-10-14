@@ -11,6 +11,16 @@ metadata:
 spec:
   ingressClassName: nginx
   rules:
+  - host: grafana.andrerimes.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: grafana-external
+            port:
+              number: 80
   - host: bidnow.andrerimes.com
     http:
       paths:
