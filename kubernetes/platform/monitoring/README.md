@@ -29,6 +29,18 @@ here. ArgoCD combines these manifests with kube-prometheus-stack **82.4.0**, rel
   is not an enforced disk limit. OS files, shared image layers, orphaned volumes and
   unconfigured host paths remain visible in node totals but are not attributed to
   namespaces. Directory scans cannot account for unlinked files still held open.
+- **Network:** receive/transmit rates in bits per second, with namespace rankings,
+  trends and summary-table columns. Physical node traffic uses Ethernet interfaces
+  matching `en.*|eth.*` (currently `enp4s0`). Virtual interfaces are excluded to avoid
+  counting tunnel/bridge traffic twice. Link utilization compares each direction
+  independently with the reported full-duplex Ethernet speed, currently 1 Gbit/s;
+  this does not measure the Internet connection's available bandwidth.
+- **Namespace network:** pod/interface counters are deduplicated and joined with
+  `kube_pod_info{host_network="false"}`. Host-network pods cannot be attributed
+  reliably and are excluded, rather than counting the entire host's traffic for
+  each pod. Namespace figures include internal pod/service traffic, so they do not
+  sum to physical-interface or Internet traffic. The namespace selector applies to
+  these panels; cluster traffic and link capacity always describe the whole node.
 
 The disk collector is intentionally scoped to node `amdre`. It scans every five
 minutes, with a four-minute process timeout. Scrapes read cached results; scans do

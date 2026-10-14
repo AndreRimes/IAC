@@ -619,7 +619,7 @@
         "type": "prometheus",
         "uid": "prometheus"
       },
-      "description": "Sort any column to find the largest consumers. Blank storage values mean collection is incomplete or stale. Persistent includes PVCs and configured application host paths. Ephemeral includes pod writable layers, logs and disk-backed temporary volumes.",
+      "description": "Sort any column to find the largest consumers. Blank storage values mean collection is incomplete or stale. Persistent includes PVCs and configured application host paths. Ephemeral includes pod writable layers, logs and disk-backed temporary volumes. Network receive/transmit are bits per second and exclude host-network pods; missing attribution is blank rather than zero.",
       "targets": [
         {
           "refId": "A",
@@ -656,6 +656,22 @@
         {
           "refId": "E",
           "expr": "(sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "F",
+          "expr": "sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_receive_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "table"
+        },
+        {
+          "refId": "G",
+          "expr": "sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_transmit_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8",
           "legendFormat": "{{namespace}}",
           "instant": true,
           "range": false,
@@ -730,6 +746,30 @@
                 "value": "bytes"
               }
             ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Network receive"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bps"
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Network transmit"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "bps"
+              }
+            ]
           }
         ]
       },
@@ -760,7 +800,9 @@
               "Time 2": true,
               "Time 3": true,
               "Time 4": true,
-              "Time 5": true
+              "Time 5": true,
+              "Time 6": true,
+              "Time 7": true
             },
             "renameByName": {
               "namespace": "Namespace",
@@ -768,11 +810,432 @@
               "Value #B": "RAM",
               "Value #C": "Persistent disk",
               "Value #D": "Temporary disk",
-              "Value #E": "Total disk"
+              "Value #E": "Total disk",
+              "Value #F": "Network receive",
+              "Value #G": "Network transmit"
             }
           }
         }
       ]
+    },
+    {
+      "id": 23,
+      "type": "row",
+      "title": "Network",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 32,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 24,
+      "title": "Cluster network traffic",
+      "type": "stat",
+      "gridPos": {
+        "x": 0,
+        "y": 33,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Physical Ethernet interfaces (en*/eth*), including host and tunnel/overlay traffic. Virtual interfaces are excluded to avoid duplicate traffic. This is not an Internet speed test.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(instance,device)(rate(node_network_receive_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8",
+          "legendFormat": "Receive",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(max by(instance,device)(rate(node_network_transmit_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8",
+          "legendFormat": "Transmit",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 25,
+      "title": "Ethernet link capacity",
+      "type": "stat",
+      "gridPos": {
+        "x": 8,
+        "y": 33,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Sum of reported physical Ethernet link speeds, currently 1 Gbit/s. Full-duplex capacity applies independently to receive and transmit; Internet throughput may be lower. Unknown/nonpositive speeds are excluded.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(instance,device)(node_network_speed_bytes{job=\"node-exporter\",device=~\"en.*|eth.*\"} > 0)) * 8",
+          "legendFormat": "Negotiated link speed",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 26,
+      "title": "Ethernet link utilization",
+      "type": "stat",
+      "gridPos": {
+        "x": 16,
+        "y": 33,
+        "w": 8,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Each direction is compared independently with negotiated Ethernet link speed; not Internet bandwidth usage.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "100 * (sum(max by(instance,device)(rate(node_network_receive_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8) / (sum(max by(instance,device)(node_network_speed_bytes{job=\"node-exporter\",device=~\"en.*|eth.*\"} > 0)) * 8)",
+          "legendFormat": "Receive %",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "100 * (sum(max by(instance,device)(rate(node_network_transmit_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8) / (sum(max by(instance,device)(node_network_speed_bytes{job=\"node-exporter\",device=~\"en.*|eth.*\"} > 0)) * 8)",
+          "legendFormat": "Transmit %",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "textMode": "value_and_name",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "id": 27,
+      "title": "Receive by namespace",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 0,
+        "y": 38,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Non-host-network pods only; deduplicated per pod/interface. Includes traffic between pods and services, so namespace traffic does not sum to physical NIC traffic. Host-network traffic cannot be attributed reliably and remains in node totals.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sort_desc(sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_receive_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8)",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 28,
+      "title": "Transmit by namespace",
+      "type": "bargauge",
+      "gridPos": {
+        "x": 12,
+        "y": 38,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Non-host-network pods only; deduplicated per pod/interface. Includes traffic between pods and services, so namespace traffic does not sum to physical NIC traffic. Host-network traffic cannot be attributed reliably and remains in node totals.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sort_desc(sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_transmit_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8)",
+          "legendFormat": "{{namespace}}",
+          "instant": true,
+          "range": false,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "values": false
+        },
+        "showUnfilled": true
+      }
+    },
+    {
+      "id": 29,
+      "title": "Namespace receive history",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Non-host-network pods only; deduplicated per pod/interface. Includes traffic between pods and services, so namespace traffic does not sum to physical NIC traffic. Host-network traffic cannot be attributed reliably and remains in node totals.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_receive_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8",
+          "legendFormat": "{{namespace}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 30,
+      "title": "Namespace transmit history",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 12,
+        "y": 46,
+        "w": 12,
+        "h": 8
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Non-host-network pods only; deduplicated per pod/interface. Includes traffic between pods and services, so namespace traffic does not sum to physical NIC traffic. Host-network traffic cannot be attributed reliably and remains in node totals.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by(namespace)(max by(namespace,pod,interface)(rate(container_network_transmit_bytes_total{job=\"kubelet\",metrics_path=\"/metrics/cadvisor\",namespace=~\"$namespace\",namespace!=\"\",pod!=\"\",interface!=\"lo\"}[$__rate_interval])) and on(namespace,pod) (max by(namespace,pod)(kube_pod_info{host_network=\"false\"}))) * 8",
+          "legendFormat": "{{namespace}}",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "id": 31,
+      "title": "Cluster network history",
+      "type": "timeseries",
+      "gridPos": {
+        "x": 0,
+        "y": 54,
+        "w": 24,
+        "h": 7
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Physical Ethernet interfaces (en*/eth*), including host and tunnel/overlay traffic. Virtual interfaces are excluded to avoid duplicate traffic. This is not an Internet speed test.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(max by(instance,device)(rate(node_network_receive_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8",
+          "legendFormat": "Receive",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(max by(instance,device)(rate(node_network_transmit_bytes_total{job=\"node-exporter\",device=~\"en.*|eth.*\"}[$__rate_interval]))) * 8",
+          "legendFormat": "Transmit",
+          "instant": false,
+          "range": true,
+          "format": "time_series"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bps",
+          "noValue": "Unavailable",
+          "color": {
+            "mode": "palette-classic"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "bottom",
+          "calcs": [
+            "lastNotNull"
+          ]
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
     },
     {
       "id": 13,
@@ -782,7 +1245,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 32,
+        "y": 61,
         "w": 24,
         "h": 1
       },
@@ -794,7 +1257,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 33,
+        "y": 62,
         "w": 8,
         "h": 8
       },
@@ -843,7 +1306,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 8,
-        "y": 33,
+        "y": 62,
         "w": 8,
         "h": 8
       },
@@ -892,7 +1355,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 16,
-        "y": 33,
+        "y": 62,
         "w": 8,
         "h": 8
       },
@@ -943,7 +1406,7 @@
       "collapsed": false,
       "gridPos": {
         "x": 0,
-        "y": 41,
+        "y": 70,
         "w": 24,
         "h": 1
       },
@@ -955,7 +1418,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 0,
-        "y": 42,
+        "y": 71,
         "w": 12,
         "h": 7
       },
@@ -1004,7 +1467,7 @@
       "type": "timeseries",
       "gridPos": {
         "x": 12,
-        "y": 42,
+        "y": 71,
         "w": 12,
         "h": 7
       },
@@ -1053,7 +1516,7 @@
       "type": "stat",
       "gridPos": {
         "x": 0,
-        "y": 49,
+        "y": 78,
         "w": 6,
         "h": 5
       },
@@ -1100,7 +1563,7 @@
       "type": "stat",
       "gridPos": {
         "x": 6,
-        "y": 49,
+        "y": 78,
         "w": 6,
         "h": 5
       },
@@ -1147,7 +1610,7 @@
       "type": "table",
       "gridPos": {
         "x": 12,
-        "y": 49,
+        "y": 78,
         "w": 12,
         "h": 5
       },
