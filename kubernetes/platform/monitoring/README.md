@@ -111,3 +111,15 @@ data. The collector can be scaled down independently if scans cause excessive I/
 
 Prometheus retains at most ten days or 15 GB of blocks (whichever is reached first),
 leaving headroom within its existing 20 GiB PVC. Grafana retains its 2 GiB PVC.
+
+## Adoption verified on 2026-10-14
+
+- ArgoCD reports `Synced / Healthy`; automatic pruning is enabled after adoption.
+- Both original PVC UIDs and PV bindings are unchanged, and the existing Grafana
+  credentials still authenticate. Grafana survives a subsequent restart.
+- Exactly one dashboard is provisioned: **Infrastructure**. All dashboard PromQL
+  expressions return data; both disk collection kinds report success.
+- Persistent storage samples match `du` on the node. Prometheus still contains its
+  pre-adoption history, including a full day's 2,880 node-exporter samples.
+- Public DNS and HTTPS reach the Grafana login page; anonymous dashboard access
+  remains disabled. The ten collector regression tests pass.

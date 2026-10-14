@@ -576,7 +576,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sort_desc((sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))))",
+          "expr": "sort_desc((sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))))",
           "legendFormat": "{{namespace}}",
           "instant": true,
           "range": false,
@@ -639,7 +639,7 @@
         },
         {
           "refId": "C",
-          "expr": "sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
+          "expr": "sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
           "legendFormat": "{{namespace}}",
           "instant": true,
           "range": false,
@@ -647,7 +647,7 @@
         },
         {
           "refId": "D",
-          "expr": "sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
+          "expr": "sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))",
           "legendFormat": "{{namespace}}",
           "instant": true,
           "range": false,
@@ -655,7 +655,7 @@
         },
         {
           "refId": "E",
-          "expr": "(sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
+          "expr": "(sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
           "legendFormat": "{{namespace}}",
           "instant": true,
           "range": false,
@@ -904,7 +904,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "(sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"},\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
+          "expr": "(sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"persistent\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\"))) + on(namespace) (sum by(namespace)(label_replace(max by(node,workload_namespace)(infrastructure_namespace_storage_used_bytes{job=\"infrastructure-storage-collector\",kind=\"ephemeral\",workload_namespace=~\"$namespace\"}),\"namespace\",\"$1\",\"workload_namespace\",\"(.*)\")))",
           "legendFormat": "{{namespace}}",
           "instant": false,
           "range": true,
