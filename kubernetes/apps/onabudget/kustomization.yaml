@@ -6,5 +6,5 @@ resources:
   - registry-pull-sealedsecret.yaml
 images:
   - name: registry.andrerimes.com/andrerimes/onabudget
-    newTag: main-6e43ac0
+    newTag: main-b1a2ea4
     newName: registry.andrerimes.com/andrerimes/onabudget
